@@ -27,9 +27,16 @@ class _FlutterTeachableState extends State<FlutterTeachable> {
   bool _load = false;
   File _pic;
   List _result;
+  String _confidence = "";
+  String _fingers = "";
 
   String numbers = '';
 
+  @override
+  void dispose() {
+    super.dispose();
+    Tflite.close();
+  }
   @override
   void initState() {
     super.initState();
@@ -68,19 +75,24 @@ class _FlutterTeachableState extends State<FlutterTeachable> {
   applyModelonImage(File file) async
   {
     var _res = await Tflite.runModelOnImage(
-      path: file.path
+      path: file.path,
+      numResults: 2,
+      threshold: 0.5,
+      imageMean: 127.5,
+      imageStd: 127.5
     );
 
     setState(() {
       _load = false;
       _result = _res;
-
-      // for(int i = 0; i < _result.length; i++)
-      // numbers = numbers + _res[]
-
       print(_result);
       String str = _result[0]["label"];
+      
+      _fingers = str.substring(2);
+      _confidence = _result != null ? (_result[0]["confidence"]*100.0).toString().substring(0,2) + "%" : "";
+
       print(str.substring(2));
+      print((_result[0]["confidence"]*100.0).toString().substring(0,2)+"%");
       print("indexed : ${_result[0]["label"]}");
     });
   }
@@ -106,8 +118,8 @@ class _FlutterTeachableState extends State<FlutterTeachable> {
                     Center(
                       child: _pic != null ? Image.file(_pic,width: size.width*0.6,) : Container(),
                     ),
-                    // _result == null ? Text("Cannot be Identified..!")
-                    //       : Text("It is ")
+                    _result == null ? Container()
+                          : Text("Number of Fingers : $_fingers\nConfidence: $_confidence"),
                   ],
                 ),
               )
