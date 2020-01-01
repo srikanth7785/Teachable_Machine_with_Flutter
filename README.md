@@ -1,4 +1,4 @@
-# :rocket: Teachable Macchine in Flutter :sunglasses:
+# :rocket: Teachable Machine in Flutter :sunglasses:
 
 Integrating Teachable Machine in Flutter for Identifying number of fingers which is initially trained with a training set of 150 images for each number of fingers.
 
