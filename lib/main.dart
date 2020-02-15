@@ -1,28 +1,48 @@
 // import 'dart:html';
 
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:tflite/tflite.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:camera/camera.dart';
 
+import './LiveFeed.dart';
+import './Box.dart';
 
-void main()
+List<CameraDescription> cameras;
+
+Future<Null> main() async
 {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    cameras = await availableCameras();
+  } on CameraException catch (e) {
+    print('Error: $e.code\nError Message: $e.message');
+  }
   runApp(
     MaterialApp(
       title: 'Teachable Machine with Flutter',
-      home: FlutterTeachable(),
+      home: FlutterTeachable(cameras),
     ),
   );
 }
 
 class FlutterTeachable extends StatefulWidget {
+  final List<CameraDescription> cameras;
+  FlutterTeachable(this.cameras);
   @override
   _FlutterTeachableState createState() => _FlutterTeachableState();
 }
 
 class _FlutterTeachableState extends State<FlutterTeachable> {
+
+  bool liveFeed = false;
+
+  List<dynamic> _recognitions;
+  int _imageHeight = 0;
+  int _imageWidth = 0;
 
   bool _load = false;
   File _pic;
@@ -53,10 +73,13 @@ class _FlutterTeachableState extends State<FlutterTeachable> {
 
   loadMyModel() async
   {
-    await Tflite.loadModel(
+    var res = await Tflite.loadModel(
       labels: "assets/labels.txt",
       model: "assets/model_unquant.tflite"
     );
+
+    print("Result after Loading the Model is : $res");
+
   }
 
   chooseImage() async
@@ -97,6 +120,14 @@ class _FlutterTeachableState extends State<FlutterTeachable> {
     });
   }
 
+  setRecognitions(recognitions, imageHeight, imageWidth) {
+    setState(() {
+      _recognitions = recognitions;
+      _imageHeight = imageHeight;
+      _imageWidth = imageWidth;
+    });
+  }  
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -104,7 +135,7 @@ class _FlutterTeachableState extends State<FlutterTeachable> {
       appBar: AppBar(
         title: Text("Teachable Machine with FLUTTER"),
       ),
-      body: Center(
+      body: !liveFeed ? Center(
         child: ListView(
           children: <Widget>[
             _load ? Container(alignment: Alignment.center,child: CircularProgressIndicator(),)
@@ -125,12 +156,46 @@ class _FlutterTeachableState extends State<FlutterTeachable> {
               )
           ],
         ),
-      ),
+      )
+      : Stack(
+              children: [
+                CameraLiveScreen(
+                  widget.cameras,
+                  setRecognitions,
+                ),
+                EnclosedBox(
+                    _recognitions == null ? [] : _recognitions,
+                    math.max(_imageHeight, _imageWidth),
+                    math.min(_imageHeight, _imageWidth),
+                    size.height,
+                    size.width,
+                ),
+              ],
+            ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: RaisedButton(
-          child: Text("Capture an Image"),
-          onPressed: chooseImage,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            RaisedButton(
+              child: Text("Image Feed"),
+              onPressed: (){
+                setState(() {
+                  liveFeed = false;
+                });
+                chooseImage();
+              },
+            ),
+            RaisedButton(
+              child: Text("Live Feed"),
+              onPressed: () {
+                setState(() {
+                  liveFeed = true;
+                });
+                loadMyModel();
+              },
+            ),
+          ],
         ),
       ),
     );

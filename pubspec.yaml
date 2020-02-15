@@ -25,6 +25,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   tflite:
   image_picker:
+  camera:
 
 dev_dependencies:
   flutter_test:
