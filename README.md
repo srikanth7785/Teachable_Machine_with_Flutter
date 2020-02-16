@@ -4,6 +4,9 @@ Integrating Teachable Machine in Flutter for Identifying number of fingers which
 
 ##### Of course, this doesn't give the efficient result, being trained with just 150 samples, but tells us how to connect Teachable Machine and how to deal with its Model in Flutter.
 
-Try it Yourself: https://teachablemachine.withgoogle.com
+![Try it Yourself.](https://teachablemachine.withgoogle.com)
 
-![Sample](Demo/demo.gif)
+<!-- ![Sample](Demo/demo.gif) -->
+| Image Feed | Live Feed |
+| ------------- | ------------- |
+| [Image Feed](Demo/demo.gif)  | [Live Feed](Demo/liveFeed.gif)  |
